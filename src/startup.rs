@@ -1,8 +1,8 @@
 use crate::routes::{health_check, subscribe};
-use actix_web::{dev::Server, web, App, HttpServer};
-use sqlx::{PgConnection, PgPool};
-use std::net::TcpListener;
 use actix_web::middleware::Logger;
+use actix_web::{dev::Server, web, App, HttpServer};
+use sqlx::PgPool;
+use std::net::TcpListener;
 
 pub fn run(listener: TcpListener, db_pool: PgPool) -> Result<Server, std::io::Error> {
     // web::Data wraps our connection in an Atomic Reference Counted pointer (ARC)
