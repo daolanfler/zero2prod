@@ -29,6 +29,7 @@ features = [
     "uuid",
     "chrono",
     "migrate",
+    "offline"
 ]
 
 [dev-dependencies]
