@@ -5,6 +5,8 @@ use tracing::Instrument;
 use unicode_segmentation::UnicodeSegmentation;
 use uuid::Uuid;
 
+use crate::domain::{NewSubscriber, SubscriberName};
+
 #[derive(serde::Deserialize)]
 pub struct FormData {
     name: String,
@@ -23,10 +25,11 @@ pub struct FormData {
 )]
 #[post("/subscriptions")]
 pub async fn subscribe(form: web::Form<FormData>, db_pool: web::Data<PgPool>) -> HttpResponse {
-    if !is_valid_name(&form.name) {
-        return HttpResponse::BadRequest().finish();
-    }
-    match insert_subscriber(&form, &db_pool).await {
+    let new_subscriber = NewSubscriber {
+        email: form.0.email,
+        name: SubscriberName::parse(form.0.name).expect("Name validation failed."),
+    };
+    match insert_subscriber(&db_pool, &new_subscriber).await {
         Ok(_) => {
             tracing::info!("New subscriber details have been saved");
             HttpResponse::Ok().finish()
@@ -40,17 +43,20 @@ pub async fn subscribe(form: web::Form<FormData>, db_pool: web::Data<PgPool>) ->
 
 #[tracing::instrument(
     name = "Saving new subscriber details to the database",
-    skip(form, pool)
+    skip(new_subscriber, pool)
 )]
-pub async fn insert_subscriber(form: &FormData, pool: &PgPool) -> Result<(), sqlx::Error> {
+pub async fn insert_subscriber(
+    pool: &PgPool,
+    new_subscriber: &NewSubscriber,
+) -> Result<(), sqlx::Error> {
     sqlx::query!(
         r#"
         INSERT INTO subscriptions (id, email, name, subscribed_at)
         VALUES ($1, $2, $3, $4)
         "#,
         Uuid::new_v4(),
-        form.email,
-        form.name,
+        &new_subscriber.email,
+        new_subscriber.name.as_ref(),
         Utc::now()
     )
     // First we attach the instrumentation, then we `.await` it
@@ -74,7 +80,7 @@ pub fn is_valid_name(s: &str) -> bool {
     let contains_forbidden_characters = s.chars().any(|g| forbidden_characters.contains(&g));
 
     // But this information about the additional structure in our input data **
-    // is not stored anywhere **. It is immediately lost.  
+    // is not stored anywhere **. It is immediately lost.
     // What we need is a _parsing function_ - a routine that accpets
     // unstructured input and, if a set of conditions holds, return us a **more
     // structured output**, an output that structurally guarantees that the
