@@ -31,12 +31,13 @@ features = [
     "uuid",
     "chrono",
     "migrate",
-    "offline"
+    "offline",
 ]
 
 [dev-dependencies]
 reqwest = "0.11"
 once_cell = "1"
+claim = '0.5'
 
 [lib]
 path = "src/lib.rs"
