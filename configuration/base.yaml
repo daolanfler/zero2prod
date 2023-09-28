@@ -1,4 +1,4 @@
-application: 
+application:
   port: 8080
 database:
   host: "127.0.0.1"
@@ -6,6 +6,7 @@ database:
   username: "postgres"
   password: "password"
   database_name: "newsletter"
-email_client: 
+email_client:
   base_url: "localhost"
   sender_email: "daolanfler@outlook.com"
+  authorization_token: "my-secret-token"
