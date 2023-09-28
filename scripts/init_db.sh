@@ -1,6 +1,6 @@
 #!/usr/bin/bash 
 
-set -x # enable debug mode
+# set -x # enable debug mode
 set -eo pipefail
 
 if ! [ -x "$(command -v psql)" ];
