@@ -15,11 +15,9 @@ impl EmailClient {
         base_url: String,
         sender: SubscriberEmail,
         authorization_token: Secret<String>,
+        timeout: std::time::Duration,
     ) -> Self {
-        let http_client = Client::builder()
-            .timeout(std::time::Duration::from_secs(10))
-            .build()
-            .unwrap();
+        let http_client = Client::builder().timeout(timeout).build().unwrap();
 
         Self {
             sender,
@@ -84,8 +82,6 @@ mod tests {
     async fn send_email_sends_the_expected_request() {
         // Arrange
         let mock_server = MockServer::start().await;
-        let sender = SubscriberEmail::parse(SafeEmail().fake()).unwrap();
-        let email_client = EmailClient::new(mock_server.uri(), sender, Secret::new(Faker.fake()));
 
         Mock::given(header_exists("X-Postmark-Server-Token"))
             .and(header("Content-Type", "application/json"))
@@ -98,7 +94,7 @@ mod tests {
             .await;
 
         // Act
-        let _ = email_client
+        let _ = email_client(mock_server.uri())
             .send_email(email(), &subject(), &content(), &content())
             .await;
         // Assert
@@ -130,8 +126,6 @@ mod tests {
     async fn send_email_succeeds_if_the_server_returns_200() {
         // Arrange
         let mock_server = MockServer::start().await;
-        let sender = SubscriberEmail::parse(SafeEmail().fake()).unwrap();
-        let email_client = EmailClient::new(mock_server.uri(), sender, Secret::new(Faker.fake()));
 
         Mock::given(any())
             .respond_with(ResponseTemplate::new(200))
@@ -140,7 +134,7 @@ mod tests {
             .await;
 
         // Act
-        let outcome = email_client
+        let outcome = email_client(mock_server.uri())
             .send_email(email(), &subject(), &content(), &content())
             .await;
 
@@ -151,8 +145,6 @@ mod tests {
     async fn send_email_fails_if_the_server_returns_500() {
         // Arrange
         let mock_server = MockServer::start().await;
-        let sender = SubscriberEmail::parse(SafeEmail().fake()).unwrap();
-        let email_client = EmailClient::new(mock_server.uri(), sender, Secret::new(Faker.fake()));
 
         Mock::given(any())
             .respond_with(ResponseTemplate::new(500)) // 这是指定 mock 服务器的返回
@@ -161,7 +153,7 @@ mod tests {
             .await;
 
         // Act
-        let outcome = email_client
+        let outcome = email_client(mock_server.uri())
             .send_email(email(), &subject(), &content(), &content())
             .await;
 
@@ -172,8 +164,6 @@ mod tests {
     async fn send_email_times_out_if_the_server_takes_too_long() {
         // Arrange
         let mock_server = MockServer::start().await;
-        let sender = SubscriberEmail::parse(SafeEmail().fake()).unwrap();
-        let email_client = EmailClient::new(mock_server.uri(), sender, Secret::new(Faker.fake()));
 
         let response = ResponseTemplate::new(200).set_delay(std::time::Duration::from_secs(180));
         Mock::given(any())
@@ -183,7 +173,7 @@ mod tests {
             .await;
 
         // Act
-        let outcome = email_client
+        let outcome = email_client(mock_server.uri())
             .send_email(email(), &subject(), &content(), &content())
             .await;
 
@@ -204,6 +194,11 @@ mod tests {
     }
     /// Get a test instance of `EmailClient`.
     fn email_client(base_url: String) -> EmailClient {
-        EmailClient::new(base_url, email(), Secret::new(Faker.fake()))
+        EmailClient::new(
+            base_url,
+            email(),
+            Secret::new(Faker.fake()),
+            std::time::Duration::from_millis(200),
+        )
     }
 }
