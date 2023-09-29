@@ -20,7 +20,7 @@ fn main() {
     println!("{:?}", foo); // 这里是 debug print
 
     let foo = r#"ra\nd\om"#;
-    println!("{}", foo); 
+    println!("{}", foo);
 
     let bar = r##"foo #"# bar"##;
     println!("{}", bar);
