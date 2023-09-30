@@ -1,4 +1,6 @@
-#!/usr/bin/bash 
+#!/usr/bin/env bash
+
+# https://stackoverflow.com/questions/10376206/what-is-the-preferred-bash-shebang
 
 # set -x # enable debug mode
 set -eo pipefail
