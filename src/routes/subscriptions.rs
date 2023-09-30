@@ -31,7 +31,7 @@ impl TryFrom<FormData> for NewSubscriber {
     name = "Adding a new subscriber",
     // it automatically attached all arguments passed to the function to the
     // context of the span
-    skip(form, db_pool, email_client, base_url),
+    skip(form, pool, email_client, base_url),
     fields(
         subscriber_email = %form.email,
         subscriber_name = %form.name
@@ -40,7 +40,7 @@ impl TryFrom<FormData> for NewSubscriber {
 #[post("/subscriptions")]
 pub async fn subscribe(
     form: web::Form<FormData>,
-    db_pool: web::Data<PgPool>,
+    pool: web::Data<PgPool>,
     email_client: web::Data<EmailClient>,
     base_url: web::Data<ApplicationBaseUrl>,
 ) -> HttpResponse {
@@ -49,12 +49,20 @@ pub async fn subscribe(
         // 这里没有给出错误原因哦
         Err(_) => return HttpResponse::BadRequest().finish(),
     };
-    if let Err(e) = insert_subscriber(&db_pool, &new_subscriber).await {
-        tracing::error!("Failed to execute query: {:?}", e);
+    let subscriber_id = match insert_subscriber(&pool, &new_subscriber).await {
+        Err(_) => return HttpResponse::InternalServerError().finish(),
+        Ok(subscriber_id) => subscriber_id,
+    };
+    let subscription_token = generate_subscription_token();
+    if store_token(&pool, subscriber_id, &subscription_token)
+        .await
+        .is_err()
+    {
         return HttpResponse::InternalServerError().finish();
     }
+
     tracing::info!("New subscriber details have been saved");
-    if send_confirmation_email(&email_client, new_subscriber, &base_url.0, "mytoken")
+    if send_confirmation_email(&email_client, new_subscriber, &base_url.0, &subscription_token)
         .await
         .is_err()
     {
@@ -144,10 +152,36 @@ pub fn is_valid_name(s: &str) -> bool {
     return !(is_empty_or_whitespace || is_too_long || contains_forbidden_characters);
 }
 
+/// 生成随机的 subscription token 
 fn generate_subscription_token() -> String {
     let mut rng = thread_rng();
     std::iter::repeat_with(|| rng.sample(Alphanumeric))
         .map(char::from)
         .take(25)
         .collect()
+}
+
+#[tracing::instrument(
+    name = "Store subscription token in the database",
+    skip(subscription_token, pool)
+)]
+pub async fn store_token(
+    pool: &PgPool,
+    subscriber_id: Uuid,
+    subscription_token: &str,
+) -> Result<(), sqlx::Error> {
+    sqlx::query!(
+        r#"INSERT INTO subscription_tokens (subscription_token, subscriber_id)
+        VALUES ($1, $2)"#,
+        subscription_token,
+        subscriber_id
+    )
+    .execute(pool)
+    .await
+    .map_err(|e| {
+        tracing::error!("Failed  to execute query: {:?}", e);
+        e
+    })?;
+
+    Ok(())
 }
