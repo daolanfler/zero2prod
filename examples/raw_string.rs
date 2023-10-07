@@ -17,11 +17,15 @@ fn main() {
     println!("{}", s1);
 
     let foo = r##"ra\nd\om"##;
-    println!("{:?}", foo); // 这里是 debug print
+    println!("{:?}", foo); // 这里是 debug print 会有 ""
+
+    let foo = "random string";
+    println!("{:?}", foo); // 作为对比 这里也会有 ""
 
     let foo = r#"ra\nd\om"#;
     println!("{}", foo);
 
     let bar = r##"foo #"# bar"##;
-    println!("{}", bar);
+    println!("display print: {}", bar);
+    println!("debug print: {:?}", bar);
 }
