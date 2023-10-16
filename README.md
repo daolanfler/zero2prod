@@ -46,3 +46,16 @@ https://internals.rust-lang.org/t/what-is-wrong-with-auto-into/17319/2
   annotations on the save field.
 
 We do not want to expose the implementation details of the fallible routines that get mapped to `Unexpected Error` by `subscribe` - it must be **opaque**.
+
+### anyhow
+
+The `context` method is performing double duties here:
+
+- it converts the error returned by our methods into an `anyhow:Error`;
+- it enriches it with additional context around the intentions of the caller.
+
+### anyhow Or thiserror
+
+> `anyhow` is for applications, `thiserror` is for libraries.
+It is not the right framing to discuss error handling.  
+You need to reason about **intent**.
