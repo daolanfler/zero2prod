@@ -14,3 +14,22 @@ export TEST_LOG=enabled
 cargo t subscribe_fails_if_there_is_a_fatal_database_error | bunyan
 
 ```
+
+## ch07
+
+Let's go over the possible scenarios to convince ourselves that we cannot possibly deploy 
+confirmation emails all at once without incurring downtime.
+
+Transaction is a way to group multiple operations into one atomic operation.
+
+
+## ch08
+
+Orphan rule aside, it would still be a mistake for us to implement `ResponseError` for `sqlx:Error`.
+We want to return a 500 Internal Server Error when we run into a `sqlx::Error` 
+_while trying to persist a subscriber token_.
+In another circumstance we might sish to handle `sqlx::Error` differently.
+
+`Option<&(dyn Error + 'static)>`  
+`dyn Error` is a trait object - a type that we know nothing about aport from the fact that it 
+implements the Error trait.

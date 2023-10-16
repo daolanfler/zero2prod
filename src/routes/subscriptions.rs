@@ -28,6 +28,7 @@ impl TryFrom<FormData> for NewSubscriber {
     }
 }
 
+// new-pattern
 pub struct StoreTokenError(sqlx::Error);
 impl ResponseError for StoreTokenError {}
 
@@ -52,7 +53,8 @@ impl std::error::Error for StoreTokenError {
 impl std::fmt::Debug for StoreTokenError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         // 自定义 Debug trait 实现为 fmt::Display + sqlx::Error 的 fmt::Display 实现
-        write!(f, "{}\nCaused by: \n\t{}", self, self.0)
+        // write!(f, "{}\nCaused by: \n\t{}", self, self.0)
+        error_chain_fmt(self, f)
     }
 }
 
@@ -88,14 +90,9 @@ pub async fn subscribe(
         Ok(subscriber_id) => subscriber_id,
     };
     let subscription_token = generate_subscription_token();
-    // if store_token(&mut transaction, subscriber_id, &subscription_token)
-    //     .await
-    //     .is_err()
-    // {
-    //     return HttpResponse::InternalServerError().finish();
-    // }
+
     // why this `?` will work without manually call `into()`, see
-    // https://internals.rust-lang.org/t/what-is-wrong-with-auto-into/17319/2 
+    // https://internals.rust-lang.org/t/what-is-wrong-with-auto-into/17319/2
     store_token(&mut transaction, subscriber_id, &subscription_token).await?;
 
     // 需要 commit 否则默认会 rollback (asynchronously)
@@ -227,9 +224,24 @@ pub async fn store_token(
     .execute(transaction)
     .await
     .map_err(|e| {
-        tracing::error!("Failed  to execute query: {:?}", e);
+        tracing::error!("Failed to execute query: {:?}", e);
         StoreTokenError(e)
     })?;
+
+    Ok(())
+}
+
+fn error_chain_fmt(
+    e: &impl std::error::Error,
+    f: &mut std::fmt::Formatter<'_>,
+) -> std::fmt::Result {
+    writeln!(f, "{}\n", e)?;
+
+    let mut current = e.source();
+    while let Some(cause) = current {
+        writeln!(f, "Caused by: \n\t{}", cause)?;
+        current = cause.source();
+    }
 
     Ok(())
 }
