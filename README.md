@@ -22,7 +22,7 @@ confirmation emails all at once without incurring downtime.
 
 Transaction is a way to group multiple operations into one atomic operation.
 
-## ch08
+## ch08 Error Handling
 
 Orphan rule aside, it would still be a mistake for us to implement `ResponseError` for `sqlx:Error`.
 We want to return a 500 Internal Server Error when we run into a `sqlx::Error`
@@ -59,3 +59,5 @@ The `context` method is performing double duties here:
 > `anyhow` is for applications, `thiserror` is for libraries.
 It is not the right framing to discuss error handling.  
 You need to reason about **intent**.
+
+## ch09 Naive Newsletter Dilivery
