@@ -44,3 +44,5 @@ https://internals.rust-lang.org/t/what-is-wrong-with-auto-into/17319/2
   into the top-level error type (e.g. `impl From<StoreTokenError> for SubscribeError {/* */}`). The
   field annotated with `#[from]` is also used as error source, saving us from having to use two
   annotations on the save field.
+
+We do not want to expose the implementation details of the fallible routines that get mapped to `Unexpected Error` by `subscribe` - it must be **opaque**.
