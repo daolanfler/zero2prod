@@ -33,3 +33,6 @@ In another circumstance we might sish to handle `sqlx::Error` differently.
 `Option<&(dyn Error + 'static)>`  
 `dyn Error` is a trait object - a type that we know nothing about aport from the fact that it 
 implements the Error trait.
+
+函数 return 的 error 会隐式的调用 `.into()`?   
+https://internals.rust-lang.org/t/what-is-wrong-with-auto-into/17319/2
