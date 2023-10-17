@@ -62,3 +62,25 @@ The `context` method is performing double duties here:
 > You need to reason about **intent**.
 
 ## ch09 Naive Newsletter Dilivery
+
+shortcomings of the naive approach:
+
+1. **Security**  
+   Our POST `/newsletters` endpoint is unprotected - anyone can fire a request toit and broadcast to
+   our entire audience, unchecked.
+2. **You Only Get One Shot**  
+   As soon you hit POST `/newsletters`, your content goes out ot your entire mailing list. No chance
+   to edit or review it in draft mode before giving the green light for publishing.
+3. **Performance**
+   We are sending emails out one at a time.  
+   We wait for the current one to be dispatched successfully before moving on to the next in line.
+   This is not a massive issue if you have 10 or 20 subscribers, but it becomes noticeable shortly
+   afterwards: latency is going to be horrible for newsletters with a sizeable audience.
+4. **Fault Tolerance**  
+   If we fail to dispatch one email we bubble up the error using `?` and return a
+   `500 Internal Server Error` to the caller.  
+   The remaining emails are never sent, nor we retry to dispatch the failed one.
+5. **Retry Safety**
+   Many things can go wrong when communicating over the network. What should a consumer of our API do
+   if thery experience a timeout or a `500 Internal Server Error` when calling our service?  
+   They cannot retry - thery risk sending the newsletter issue tiwce to the entire mailing list.
