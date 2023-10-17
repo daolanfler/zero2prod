@@ -84,3 +84,11 @@ shortcomings of the naive approach:
    Many things can go wrong when communicating over the network. What should a consumer of our API do
    if thery experience a timeout or a `500 Internal Server Error` when calling our service?  
    They cannot retry - thery risk sending the newsletter issue tiwce to the entire mailing list.
+
+## ch10 Authentication
+
+- Basic auth
+- Session based
+- OAuth 2.0
+- OpenId Connect
+- JWT
