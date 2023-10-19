@@ -41,6 +41,11 @@ impl ResponseError for PublishError {
     }
 }
 
+#[tracing::instrument(
+    name = "Publish a newsletter issue",
+    skip(body, pool, email_client, request),
+    fields(username=tracing::field::Empty, user_id=tracing::field::Empty)
+)]
 #[post("/newsletters")]
 pub async fn publish_newsletter(
     body: web::Json<BodyData>,
