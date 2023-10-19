@@ -3,11 +3,10 @@ use actix_web::{
     http::{header::HeaderMap, StatusCode},
     post, web, HttpRequest, HttpResponse, ResponseError,
 };
-use anyhow::{Context, Error};
-use argon2::{Algorithm, Argon2, Params, PasswordHash, PasswordHasher, PasswordVerifier, Version};
+use anyhow::Context;
+use argon2::{Argon2, PasswordHash, PasswordVerifier};
 use reqwest::header::{self, HeaderValue};
 use secrecy::{ExposeSecret, Secret};
-use sha3::Digest;
 use sqlx::PgPool;
 
 #[derive(thiserror::Error)]
