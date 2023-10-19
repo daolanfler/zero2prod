@@ -1,4 +1,4 @@
-use crate::{domain::SubscriberEmail, email_client::EmailClient, routes::error_chain_fmt};
+use crate::{domain::SubscriberEmail, email_client::EmailClient, routes::error_chain_fmt, telemetry::spwan_blocking_with_tracing};
 use actix_web::{
     http::{header::HeaderMap, StatusCode},
     post, web, HttpRequest, HttpResponse, ResponseError,
@@ -132,21 +132,35 @@ async fn validate_credentials(
         .map_err(PublishError::UnexpectedError)?
         .ok_or_else(|| PublishError::AuthError(anyhow::anyhow!("Unknown username")))?;
 
-    let expected_password_hash = PasswordHash::new(&expected_password_hash.expose_secret())
-        .context("Failed to parse hash in PHC string format.")
-        .map_err(PublishError::UnexpectedError)?;
-
-    tracing::info_span!("Verify password hash")
-        .in_scope(|| {
-            Argon2::default().verify_password(
-                credentials.password.expose_secret().as_bytes(),
-                &expected_password_hash,
-            )
-        })
-        .context("Invalid password.")
-        .map_err(PublishError::AuthError)?;
+    spwan_blocking_with_tracing(move || {
+        verify_password_has(expected_password_hash, credentials.password)
+    })
+    .await
+    // spawn_blocking is fallible - we have a nested Result here!
+    .context("Failed to spawn blocking task.")
+    .map_err(PublishError::UnexpectedError)??;
 
     Ok(user_id)
+}
+
+#[tracing::instrument(
+    name = "Verify password hash",
+    skip(expected_password_hash, password_candidate)
+)]
+fn verify_password_has(
+    expected_password_hash: Secret<String>,
+    password_candidate: Secret<String>,
+) -> Result<(), PublishError> {
+    let expected_password_hash = PasswordHash::new(expected_password_hash.expose_secret())
+        .context("Failed to parse hash in PHC string format.")
+        .map_err(PublishError::UnexpectedError)?;
+    Argon2::default()
+        .verify_password(
+            password_candidate.expose_secret().as_bytes(),
+            &expected_password_hash,
+        )
+        .context("Invalid password.")
+        .map_err(PublishError::AuthError)
 }
 
 // we extract the db-querying logic in its own function with its own span

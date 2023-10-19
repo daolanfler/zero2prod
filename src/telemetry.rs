@@ -1,3 +1,4 @@
+use tokio::task::JoinHandle;
 use tracing::{subscriber::set_global_default, Subscriber};
 use tracing_bunyan_formatter::{BunyanFormattingLayer, JsonStorageLayer};
 use tracing_log::LogTracer;
@@ -40,4 +41,15 @@ where
 pub fn init_subscriber(subscriber: impl Subscriber + Send + Sync) {
     LogTracer::init().expect("Failed to set logger");
     set_global_default(subscriber).expect("Failed to set subscriber")
+}
+
+// We can now easily reach for this every time we need to offload some
+// CPU-intensive computation to a dedicated threadpool
+pub fn spwan_blocking_with_tracing<F, R>(f: F) -> JoinHandle<R>
+where
+    F: FnOnce() -> R + Send + 'static,
+    R: Send + 'static,
+{
+    let current_span = tracing::Span::current();
+    tokio::task::spawn_blocking(move || current_span.in_scope(f))
 }
