@@ -93,6 +93,18 @@ shortcomings of the naive approach:
 - OpenId Connect
 - JWT
 
+### Basic Auth
+
 use Argon2 and PHC String Format with `PasswordHash` trait  
 Do not break the async executor  
-**cooperative scheduling** 
+**cooperative scheduling**
+
+Furthermore, keeping an audit trail with shared credentials is a nightmare. When something goes
+wrong, it is impossible to detemine who did what: was it really me? Was it one of the twenty apps
+I shared credentials with? Who takes responsibility?  
+This is the textbook scenario for OAuth2 - the third-party never gets to see our username and
+password. They receive an opaque access token from the authentication server which our PI knows how
+to inspect to grant (or deny) access.
+
+### Login Form
+
