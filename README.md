@@ -40,7 +40,7 @@ https://internals.rust-lang.org/t/what-is-wrong-with-auto-into/17319/2
 
 - `#[error(/* */)]` defines the Display representation of the enum variant it is applied to.
 - `#[source]` is used to dentoe what should be returned as root cause in Error::source.
-- `#[from]` automatically derives an implementation of **From** for the type ithas been applied to
+- `#[from]` automatically derives an implementation of **From** for the type it has been applied to
   into the top-level error type (e.g. `impl From<StoreTokenError> for SubscribeError {/* */}`). The
   field annotated with `#[from]` is also used as error source, saving us from having to use two
   annotations on the save field.
