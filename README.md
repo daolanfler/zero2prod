@@ -92,3 +92,7 @@ shortcomings of the naive approach:
 - OAuth 2.0
 - OpenId Connect
 - JWT
+
+use Argon2 and PHC String Format with `PasswordHash` trait  
+Do not break the async executor  
+**cooperative scheduling** 
