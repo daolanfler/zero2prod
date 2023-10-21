@@ -115,3 +115,11 @@ The attacher injects HTML fragments or JavaScript snippets into a trusted websit
 dynamic content built from untrusted sources - e.g. user inputs, query parameters, etc.  
 From a user perspective, XSS attacks are particularly insidious - the URL matches the one you
 wanted to visit, therefore you are likely to trust the displayed content.
+
+**Message Authentication Codes**  
+We need a mechanism to verify that the query parameters have been set by our API and that they 
+have not been altered by a third party.  
+known as a message authentication - it guarantees that the message has not been modified in 
+transit (integrity) and it allows you to vefiy the identity of the sender 
+(**data origin authentication**).  
+`hmac` stands for _hash message authentication code_.
