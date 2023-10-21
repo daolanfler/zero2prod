@@ -2,13 +2,11 @@ use actix_web::cookie::Cookie;
 use actix_web::error::InternalError;
 use actix_web::http::header::LOCATION;
 use actix_web::{post, web, HttpResponse};
-use hmac::{Hmac, Mac};
-use secrecy::{ExposeSecret, Secret};
+use secrecy::Secret;
 use sqlx::PgPool;
 
 use crate::authentication::{validate_credentials, AuthError, Credentials};
 use crate::routes::error_chain_fmt;
-use crate::startup::HmacSecret;
 
 #[derive(serde::Deserialize)]
 pub struct FormData {
