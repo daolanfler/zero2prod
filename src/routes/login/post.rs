@@ -1,13 +1,13 @@
 use actix_web::error::InternalError;
-use actix_web::http::header::{ContentType, LOCATION};
-use actix_web::http::StatusCode;
-use actix_web::{post, web, HttpResponse, ResponseError};
+use actix_web::http::header::LOCATION;
+use actix_web::{post, web, HttpResponse};
 use hmac::{Hmac, Mac};
 use secrecy::{ExposeSecret, Secret};
 use sqlx::PgPool;
 
 use crate::authentication::{validate_credentials, AuthError, Credentials};
 use crate::routes::error_chain_fmt;
+use crate::startup::HmacSecret;
 
 #[derive(serde::Deserialize)]
 pub struct FormData {
@@ -16,7 +16,7 @@ pub struct FormData {
 }
 
 #[tracing::instrument(
-    skip(form, pool),
+    skip(form, pool, secret),
     fields(username=tracing::field::Empty, user_id=tracing::field::Empty)
 )]
 #[post("/login")]
@@ -24,8 +24,7 @@ pub struct FormData {
 pub async fn login(
     form: web::Form<FormData>,
     pool: web::Data<PgPool>,
-    // Injecting the secrent as a secret string for the time being
-    secret: web::Data<Secret<String>>,
+    secret: web::Data<HmacSecret>,
     // not returning a Result
     // It has one drawback - we are no longer propagating upstream, to the middleware chain,
     // the error context. This is concerning when dealing with a `LoginError::UnexpectedError`
@@ -53,7 +52,7 @@ pub async fn login(
 
             let hmac_tag = {
                 let mut mac =
-                    Hmac::<sha2::Sha256>::new_from_slice(secret.expose_secret().as_bytes())
+                    Hmac::<sha2::Sha256>::new_from_slice(secret.0.expose_secret().as_bytes())
                         .unwrap();
                 mac.update(query_string.as_bytes());
                 mac.finalize().into_bytes()
