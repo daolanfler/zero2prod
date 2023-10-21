@@ -1,3 +1,4 @@
+use actix_web::error::InternalError;
 use actix_web::http::header::{ContentType, LOCATION};
 use actix_web::http::StatusCode;
 use actix_web::{post, web, HttpResponse, ResponseError};
@@ -25,7 +26,11 @@ pub async fn login(
     pool: web::Data<PgPool>,
     // Injecting the secrent as a secret string for the time being
     secret: web::Data<Secret<String>>,
-) -> HttpResponse {
+    // not returning a Result
+    // It has one drawback - we are no longer propagating upstream, to the middleware chain,
+    // the error context. This is concerning when dealing with a `LoginError::UnexpectedError`
+    // - our logs should really capture what has gone wrong.
+) -> Result<HttpResponse, InternalError<LoginError>> {
     let credentials = Credentials {
         password: form.0.password,
         username: form.0.username,
@@ -34,9 +39,9 @@ pub async fn login(
     match validate_credentials(credentials, &pool).await {
         Ok(user_id) => {
             tracing::Span::current().record("user_id", &tracing::field::display(&user_id));
-            HttpResponse::SeeOther()
+            Ok(HttpResponse::SeeOther()
                 .insert_header((LOCATION, "/"))
-                .finish()
+                .finish())
         }
         Err(e) => {
             let e = match e {
@@ -53,12 +58,13 @@ pub async fn login(
                 mac.update(query_string.as_bytes());
                 mac.finalize().into_bytes()
             };
-            HttpResponse::SeeOther()
+            let response = HttpResponse::SeeOther()
                 .insert_header((
                     LOCATION,
                     format!("/login?{}&tag={:x}", query_string, hmac_tag),
                 ))
-                .finish()
+                .finish();
+            Err(InternalError::from_response(e, response))
         }
     }
 }
@@ -76,4 +82,3 @@ impl std::fmt::Debug for LoginError {
         error_chain_fmt(self, f)
     }
 }
-
