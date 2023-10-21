@@ -142,3 +142,10 @@ We can use cookies to implement the same strategy we tried with query parameters
 - `Get /login`'s request handler checkes the cookies to see if there is an error message to be
   rendered (server side rendering);
 - `Get /login` returns the HTML form to the caller and deletes the error message from cookie.
+
+
+When it comes to durability, there are two type of cookies: **session cookies** and 
+**persistent cookies**. Sesion cookies are stored in memory - they are deleted when the session
+ends (i.e. the browser is closed). Persistent cookies, instead, are saved to disk and will be 
+there when you re-open the browser.  
+
