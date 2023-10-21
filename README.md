@@ -108,3 +108,10 @@ to inspect to grant (or deny) access.
 
 ### Login Form
 
+### XSS
+
+This is known as a **cross-site scripting** (XSS) attack.  
+The attacher injects HTML fragments or JavaScript snippets into a trusted website by exploiting
+dynamic content built from untrusted sources - e.g. user inputs, query parameters, etc.  
+From a user perspective, XSS attacks are particularly insidious - the URL matches the one you
+wanted to visit, therefore you are likely to trust the displayed content.

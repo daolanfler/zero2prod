@@ -1,4 +1,4 @@
-use actix_web::http::header::LOCATION;
+use actix_web::http::header::{ContentType, LOCATION};
 use actix_web::http::StatusCode;
 use actix_web::{post, web, HttpResponse, ResponseError};
 use secrecy::Secret;
@@ -60,9 +60,17 @@ impl ResponseError for LoginError {
     // `ResponseError` trait populates the body using `Display` representation
     // of the error returned by the request handler
     fn status_code(&self) -> StatusCode {
-        match self {
-            LoginError::UnexpectedError(_) => StatusCode::INTERNAL_SERVER_ERROR,
-            LoginError::AuthError(_) => StatusCode::UNAUTHORIZED,
-        }
+        // match self {
+        //     LoginError::UnexpectedError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+        //     LoginError::AuthError(_) => StatusCode::UNAUTHORIZED,
+        // }
+        StatusCode::SEE_OTHER
+    }
+
+    fn error_response(&self) -> HttpResponse<actix_web::body::BoxBody> {
+        let encoded_error = urlencoding::Encoded::new(self.to_string());
+        HttpResponse::build(self.status_code())
+            .insert_header((LOCATION, format!("/login?error={}", encoded_error)))
+            .finish()
     }
 }
