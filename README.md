@@ -117,9 +117,28 @@ From a user perspective, XSS attacks are particularly insidious - the URL matche
 wanted to visit, therefore you are likely to trust the displayed content.
 
 **Message Authentication Codes**  
-We need a mechanism to verify that the query parameters have been set by our API and that they 
+We need a mechanism to verify that the query parameters have been set by our API and that they
 have not been altered by a third party.  
-known as a message authentication - it guarantees that the message has not been modified in 
-transit (integrity) and it allows you to vefiy the identity of the sender 
+known as a message authentication - it guarantees that the message has not been modified in
+transit (integrity) and it allows you to vefiy the identity of the sender
 (**data origin authentication**).  
 `hmac` stands for _hash message authentication code_.
+
+Error messages hould be **ephemeral**, we should not put it in the query parameter of the
+`LOCATION` response header, as browser will keep history of it.
+
+### Session
+
+What Is A Cookie?
+
+> a small piece of data that a server sends to a user's web browser. The browser may store the
+> cookie and send it back to the same server with later requests.
+
+We can use cookies to implement the same strategy we tried with query parameters:
+
+- The user enters invalid credentials and submits the form
+- `POST /login` sets a cookie containing the error message and redirects the user back to `GET /login`
+- The browser calls `GET /login`, including the values of the cookies currently set for the user;
+- `Get /login`'s request handler checkes the cookies to see if there is an error message to be
+  rendered (server side rendering);
+- `Get /login` returns the HTML form to the caller and deletes the error message from cookie.
