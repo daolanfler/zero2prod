@@ -1,4 +1,4 @@
-mod health_check;
+mod health_check; // warning becuase it exports function with the smae name as module name
 mod home;
 mod login;
 mod newsletters;
