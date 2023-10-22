@@ -191,3 +191,10 @@ be short-lived.
 
 Therefore, we can use the session token as key while the value is the JSON representation of the
 session state - the application takes care of serialization/deserialization. 
+
+What does `Session::insert` actually do, though? 
+All operations performed against `Session` are executed in memory - they do not affect the state
+of the session as seen by the storage backend. After the handler returns a response,
+`SessionMiddleware` will inspect the in-importy state of `Session` - if it changed, it will call
+Redis to update (or create) the state. It will also take care of setting a session cookie on the 
+client, if there wasn't one already.

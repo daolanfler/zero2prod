@@ -13,7 +13,7 @@ pub struct Settings {
     pub application: ApplicationSettings,
     pub email_client: EmailClientSettings,
     // The URI is marked as secret because it may embed a pasword.
-    pub redis_uri: Secret<String>
+    pub redis_uri: Secret<String>,
 }
 
 #[derive(serde::Deserialize, Clone)]
