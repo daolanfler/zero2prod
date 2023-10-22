@@ -143,9 +143,23 @@ We can use cookies to implement the same strategy we tried with query parameters
   rendered (server side rendering);
 - `Get /login` returns the HTML form to the caller and deletes the error message from cookie.
 
-
-When it comes to durability, there are two type of cookies: **session cookies** and 
+When it comes to durability, there are two type of cookies: **session cookies** and
 **persistent cookies**. Sesion cookies are stored in memory - they are deleted when the session
-ends (i.e. the browser is closed). Persistent cookies, instead, are saved to disk and will be 
-there when you re-open the browser.  
+ends (i.e. the browser is closed). Persistent cookies, instead, are saved to disk and will be
+there when you re-open the browser.
 
+**Cookie Security**
+
+- Secure  
+  We can benefit from an additional layer of defense by marking newly created cookies as `Secure`
+  : this instructs browsers to only attach the cooke to requests transmitted over secure connections.
+
+- Http-Only  
+  to prevent client-side JavaScript from accessing the cookie.  
+  We can mark newly created cookes as `Http-Only` to hide from client-side code - the browser will
+  store them and attach them to outgoing requests as usual, but will not bee able the see them.
+- User manipulate via developer console
+
+We need multiple layer of defence. Message authentication code (MAC), A cookie value with an
+HMAC tag attached is often referred to as a **singed cookie**.  
+that leads us to **actix-web-flash-messages**

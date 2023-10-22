@@ -1,5 +1,5 @@
 use crate::{
-    authentication::{AuthError, Credentials, validate_credentials},
+    authentication::{validate_credentials, AuthError, Credentials},
     domain::SubscriberEmail,
     email_client::EmailClient,
     routes::error_chain_fmt,

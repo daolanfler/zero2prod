@@ -98,7 +98,7 @@ impl TestApp {
         // By default, a `Client` will automatically handle HTTP redirects, having a maximum
         // redirect chain of 10 hops. To customize this behavior, a `redirect::Policy` can be
         // used with a `ClientBuilder`.
-            self.api_client
+        self.api_client
             .post(&format!("{}/login", &self.address))
             // This `reqwest` method makes sure that the body is URL-encoded
             // and the `Content-Type` header is set accordingly.

@@ -1,6 +1,6 @@
 use anyhow::Context;
-use argon2::{PasswordHash, Argon2, PasswordVerifier};
-use secrecy::{Secret, ExposeSecret};
+use argon2::{Argon2, PasswordHash, PasswordVerifier};
+use secrecy::{ExposeSecret, Secret};
 use sqlx::PgPool;
 
 use crate::telemetry::spwan_blocking_with_tracing;
