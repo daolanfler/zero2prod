@@ -127,7 +127,7 @@ transit (integrity) and it allows you to vefiy the identity of the sender
 Error messages hould be **ephemeral**, we should not put it in the query parameter of the
 `LOCATION` response header, as browser will keep history of it.
 
-### Session
+### Cookie and Flash Message
 
 What Is A Cookie?
 
@@ -163,3 +163,31 @@ there when you re-open the browser.
 We need multiple layer of defence. Message authentication code (MAC), A cookie value with an
 HMAC tag attached is often referred to as a **singed cookie**.  
 that leads us to **actix-web-flash-messages**
+
+### Sessions
+
+Session-based authentication is a strategy to avoid asking users to provide their password on every
+single page. Users are asked to authenticate once, via a login form: if successful, the sever
+generates a one-time secret - an authenticated session token.
+
+> Naming can be quite confusing - we are using the terms _session token/session cookie_ to refer to
+> the client-side cookie associated to a **user** session. Later in this chapter, we will talk about
+> the lifecycle of cookies, where _session cookie_ refers to a cookie whos life time is tied to a
+> **browser** session.
+
+We need a **session store** - the server must remember the tokens it has generated in order to
+authorize future requests for logged-in users. We also want to asscociate information to each
+active session - this is known as a **session state**.
+
+- creation 
+- retrieval 
+- update 
+- deletion 
+
+*CRUD* (create, delete, read, update). need some form of **expiration** - sessions are meant to 
+be short-lived. 
+
+#### Redis  
+
+Therefore, we can use the session token as key while the value is the JSON representation of the
+session state - the application takes care of serialization/deserialization. 
