@@ -216,3 +216,11 @@ to evolve the schema? How do we prevent a key typo from causing a production out
 Tests can help, but we can use the type system to make the problem go away entirely. We will build
 a strongly-typed API on top of `Session` to access and modify the state - no more string keys and
 type casting in our request handlers.
+
+Seed Users  
+There is no user in the database and we do not have a sign up flow for admins - the implicit
+expectation has been that the application owner would become the first admin of the newsletter
+_somehow_!
+The seed admin should then be able to invite more collaborators if they wish to do so. You could
+implment this login-protected functionality as an exercise! Look at the subscription flow for
+inspiration.
