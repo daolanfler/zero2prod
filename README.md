@@ -207,3 +207,12 @@ Websites go to great lengths to prevent malicious actors from sniffing session t
 another attach strategy - seed the user's browser with a **known** session token **before** they log
 in, wait for authentication to happen and, boom, you are in!.  
 [rotating the session token when the user logs in](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html#renew-the-session-id-after-any-privilege-level-change)
+
+A Typed Interface To Session  
+It works when the state is very simple, but it quickly degrades into a mess if you have several
+routes accessing the same data - how can you be sure that you updateded all of them when you want
+to evolve the schema? How do we prevent a key typo from causing a production outage?
+
+Tests can help, but we can use the type system to make the problem go away entirely. We will build
+a strongly-typed API on top of `Session` to access and modify the state - no more string keys and
+type casting in our request handlers.
