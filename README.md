@@ -179,22 +179,31 @@ We need a **session store** - the server must remember the tokens it has generat
 authorize future requests for logged-in users. We also want to asscociate information to each
 active session - this is known as a **session state**.
 
-- creation 
-- retrieval 
-- update 
-- deletion 
+- creation
+- retrieval
+- update
+- deletion
 
-*CRUD* (create, delete, read, update). need some form of **expiration** - sessions are meant to 
-be short-lived. 
+_CRUD_ (create, delete, read, update). need some form of **expiration** - sessions are meant to
+be short-lived.
 
-#### Redis  
+#### Redis
 
 Therefore, we can use the session token as key while the value is the JSON representation of the
-session state - the application takes care of serialization/deserialization. 
+session state - the application takes care of serialization/deserialization.
 
-What does `Session::insert` actually do, though? 
+What does `Session::insert` actually do, though?
 All operations performed against `Session` are executed in memory - they do not affect the state
 of the session as seen by the storage backend. After the handler returns a response,
 `SessionMiddleware` will inspect the in-importy state of `Session` - if it changed, it will call
-Redis to update (or create) the state. It will also take care of setting a session cookie on the 
+Redis to update (or create) the state. It will also take care of setting a session cookie on the
 client, if there wasn't one already.
+
+Sessions can be used for more than authentication - e.g. to keep track of what have been added to
+the basket when shopping in "guest" mode. This implies that a user might be associated to an
+_anonymous_ session and, after they authenticate, to a _priviledged_ session. This can be leveraged
+by attackers.  
+Websites go to great lengths to prevent malicious actors from sniffing session tokens, leading to
+another attach strategy - seed the user's browser with a **known** session token **before** they log
+in, wait for authentication to happen and, boom, you are in!.  
+[rotating the session token when the user logs in](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html#renew-the-session-id-after-any-privilege-level-change)
