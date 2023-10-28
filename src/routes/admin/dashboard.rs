@@ -27,17 +27,22 @@ pub async fn admin_dashboard(
             r#"
 <!DOCTYPE html>
 <html lang="en">
-<head>
+  <head>
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
     <title>Admin dashboard</title>
-</head>
-<body>
+  </head>
+  <body>
     <p>Welcome {username}!</p>
     <p>Available actions:</p>
     <ol>
-    <li><a href="/admin/password">Change password</a></li>
+      <li><a href="/admin/password">Change password</a></li>
+      <li>
+        <form action="/admin/logout" method="post" name="logoutForm">
+          <input type="submit" value="logout" />
+        </form>
+      </li>
     </ol>
-</body>
+  </body>
 </html>
             "#
         )))
