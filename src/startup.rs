@@ -3,7 +3,7 @@ use crate::{
     email_client::EmailClient,
     routes::{
         admin_dashboard, confirm, health_check, home, login, login_form, publish_newsletter,
-        subscribe,
+        subscribe, change_password_form, change_password,
     },
 };
 use actix_session::{storage::RedisSessionStore, SessionMiddleware};
@@ -68,6 +68,8 @@ pub async fn run(
             .service(login_form)
             .service(login)
             .service(admin_dashboard)
+            .service(change_password_form)
+            .service(change_password)
             // Get a pointer copy and attach it to the application state
             .app_data(db_pool.clone())
             .app_data(email_client.clone())
