@@ -1,9 +1,10 @@
 use crate::{
+    authentication::reject_anonymous_users,
     configuration::{DatabaseSettings, Settings},
     email_client::EmailClient,
     routes::{
-        admin_dashboard, confirm, health_check, home, login, login_form, publish_newsletter,
-        subscribe, change_password_form, change_password, log_out,
+        admin_dashboard, change_password, change_password_form, confirm, health_check, home,
+        log_out, login, login_form, publish_newsletter, subscribe,
     },
 };
 use actix_session::{storage::RedisSessionStore, SessionMiddleware};
@@ -11,6 +12,7 @@ use actix_web::cookie::Key;
 use actix_web::{dev::Server, web, App, HttpServer};
 use actix_web_flash_messages::storage::CookieMessageStore;
 use actix_web_flash_messages::FlashMessagesFramework;
+use actix_web_lab::middleware::from_fn;
 use secrecy::{ExposeSecret, Secret};
 use sqlx::{postgres::PgPoolOptions, PgPool};
 use std::net::TcpListener;
@@ -67,10 +69,14 @@ pub async fn run(
             .service(home)
             .service(login_form)
             .service(login)
-            .service(admin_dashboard)
-            .service(change_password_form)
-            .service(change_password)
-            .service(log_out)
+            .service(
+                web::scope("/admin")
+                    .wrap(from_fn(reject_anonymous_users))
+                    .route("/dashboard", web::get().to(admin_dashboard))
+                    .route("/password", web::get().to(change_password_form))
+                    .route("/password", web::post().to(change_password))
+                    .route("/logout", web::post().to(log_out)),
+            )
             // Get a pointer copy and attach it to the application state
             .app_data(db_pool.clone())
             .app_data(email_client.clone())
