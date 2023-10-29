@@ -13,6 +13,8 @@ use reqwest::header::{self, HeaderValue};
 use secrecy::Secret;
 use sqlx::PgPool;
 
+// Basic Auth based newsletter publishing
+
 #[derive(thiserror::Error)]
 pub enum PublishError {
     #[error("Authentication failed.")]
