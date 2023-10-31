@@ -224,3 +224,49 @@ _somehow_!
 The seed admin should then be able to invite more collaborators if they wish to do so. You could
 implment this login-protected functionality as an exercise! Look at the subscription flow for
 inspiration.
+
+
+
+## Ch11 Fault-tolerant Workflows
+
+To deliver a reliable service in the face of failure we will have to explore new concepts: 
+idempotency (幂等性), locking, queues and background jobs. 
+
+### Network I/O misbehave
+
+- retry in process, by adding some logic around the `get_confirmed_subscribers` call;
+- give up by returning an error to the user. The user can then decide if they want to retry or not
+
+The first option makes our application more resilient (弹性的) to spurious (虚假的) failures. 
+Nonetheless, you can 
+only perform a finite number of retries; you will have to give up eventually.
+Our implementation opts for the second strategy from the get-go. It might result in a few more 500s,
+but it is not incompatible with our overaching (总体的，包罗万象的) objective.
+
+bails out: 退出
+
+You might recognize the struggle: we are dealing with a **workflow**, a combination of multiple 
+**subtasks**.  
+We faced something similar in chapter 7 when we had to execute a sequence of SQL queries to create a 
+a new subscriber. Back then, we opted for an all-or-nothing semantics using SQL transactions: 
+nothing happens unless all queries succeed. Postmark's API does not provide any kind of transactional
+semantics - each API call is its own unit of work, we have no way to link them together. 
+
+Given that this is all about understanding the caller's intent, there is no better strategy than 
+empowering the caller
+themselves to tell us what they are trying to do. This is commonly accomplished using 
+**idempotency keys**.  
+
+The caller generates a unique identifier, the idempotency key, for every state-altering operation
+they waht to perform. The idempotency key is attached to the outgoing request, usually as an HTTP
+header (e.g Idempotency-Key)
+
+
+**synchronization**: the second one should not be processed until the first one has completed. 
+- Reject the second request by returning a `409 conflict` status code back to the caller.
+- Wait until the first request completes processing. Then return the same response back to the 
+caller.
+
+price to pay: 
+both the client and the server need to keep an open connection while spinning idle, waiting for 
+the other task to complete.
