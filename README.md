@@ -270,3 +270,9 @@ caller.
 price to pay: 
 both the client and the server need to keep an open connection while spinning idle, waiting for 
 the other task to complete.
+
+### Save Response 
+Why does `HttpResponse` need to be generic over the body type in the first place? Can't it just use
+`Vec<u8>` or similar bytes container? 
+HTTP/1.1 supports another mechanism to transfer data - `Trasfer-Encoding: chunked`, also known as
+**HTTP streaming**. 
