@@ -2,6 +2,7 @@ use crate::authentication::UserId;
 use crate::domain::SubscriberEmail;
 use crate::email_client::EmailClient;
 use crate::idempotency::get_saved_response;
+use crate::idempotency::save_response;
 use crate::idempotency::IdempotencyKey;
 use crate::utils::{e400, e500, see_other};
 use actix_web::web::ReqData;
@@ -42,6 +43,7 @@ pub async fn publish_newsletter(
         .await
         .map_err(e500)?
     {
+        FlashMessage::info("The newsletter issue has been published!").send();
         return Ok(saved_response);
     }
 
@@ -53,6 +55,9 @@ pub async fn publish_newsletter(
                     .send_email(&subscriber.email, &title, &html_content, &text_content)
                     .await
                     .with_context(|| {
+                        // Use `with_context` when there's a runtime cost. format macro stores the 
+                        // string into the heap, using `context` would be allocating that string every
+                        // time we send an email out.
                         format!("Failed to send newsletter issue to {}", subscriber.email)
                     })
                     .map_err(e500)?;
@@ -61,13 +66,18 @@ pub async fn publish_newsletter(
                 tracing::warn!(
                     error.cause_chain = ?error,
                     error.message = %error,
-                    "Skipping a confirmed subscriber. Their stored contact details are invalid",
+                    "Skipping a confirmed subscriber. \
+                    Their stored contact details are invalid",
                 );
             }
         }
     }
     FlashMessage::info("The newsletter issue has been published!").send();
-    Ok(see_other("/admin/newsletters"))
+    let response = see_other("/admin/newsletters");
+    let response = save_response(&pool, &idempotency_key, *user_id, response)
+        .await
+        .map_err(e500)?;
+    Ok(response)
 }
 
 struct ConfirmedSubscriber {
