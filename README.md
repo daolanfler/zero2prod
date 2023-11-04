@@ -276,3 +276,5 @@ Why does `HttpResponse` need to be generic over the body type in the first place
 `Vec<u8>` or similar bytes container? 
 HTTP/1.1 supports another mechanism to transfer data - `Trasfer-Encoding: chunked`, also known as
 **HTTP streaming**. 
+
+### Synchronization
