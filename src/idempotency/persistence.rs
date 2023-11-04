@@ -2,9 +2,9 @@ use super::IdempotencyKey;
 
 use actix_web::{body::to_bytes, HttpResponse};
 use reqwest::StatusCode;
-use sqlx::PgPool;
-use uuid::Uuid;
 use sqlx::postgres::PgHasArrayType;
+use sqlx::{PgPool, Postgres, Transaction};
+use uuid::Uuid;
 
 #[derive(Debug, sqlx::Type)]
 #[sqlx(type_name = "header_pair")]
@@ -16,7 +16,7 @@ struct HeaderPairRecord {
 /// sqlx knows, via `#[sqlx(type_name="header_pair")]` attribute, the name of the composite
 /// type itself. It does not know the name of the type for arrays containing `header_pair` elements.
 /// Postgres creates an array type implicitly when we run `CREATE TYPE` statement - it is simply
-/// the composite type name prefixed by an underscore. 
+/// the composite type name prefixed by an underscore.
 impl PgHasArrayType for HeaderPairRecord {
     fn array_type_info() -> sqlx::postgres::PgTypeInfo {
         sqlx::postgres::PgTypeInfo::with_name("_header_pair")
@@ -28,6 +28,8 @@ pub async fn get_saved_response(
     idempotency_key: &IdempotencyKey,
     user_id: Uuid,
 ) -> Result<Option<HttpResponse>, anyhow::Error> {
+    // with `!` we ask `sqlx` to forcefully assume that the columns will not be null
+    // if we are wrong, it will cause an error at runtime
     let saved_response = sqlx::query!(
         r#"
         SELECT
@@ -59,7 +61,7 @@ pub async fn get_saved_response(
 }
 
 pub async fn save_response(
-    pool: &PgPool,
+    mut transaction: Transaction<'static, Postgres>,
     idempotency_key: &IdempotencyKey,
     user_id: Uuid,
     http_response: HttpResponse,
@@ -82,15 +84,14 @@ pub async fn save_response(
 
     sqlx::query_unchecked!(
         r#"
-        INSERT INTO idempotency (
-            user_id,
-            idempotency_key,
-            response_status_code,
-            response_headers,
-            response_body,
-            created_at
-        )
-        VALUES ($1, $2, $3, $4, $5, now())
+        UPDATE idempotency 
+        SET 
+            response_status_code = $3,
+            response_headers = $4,
+            response_body = $5
+        WHERE 
+            user_id = $1 AND 
+            idempotency_key = $2
     "#,
         user_id,
         idempotency_key.as_ref(),
@@ -98,11 +99,65 @@ pub async fn save_response(
         headers,
         body.as_ref()
     )
-    .execute(pool)
+    .execute(&mut transaction)
     .await?;
+    // IMPORTANT 这里一定要 commit
+    transaction.commit().await?;
 
     // We need `.map_into_boxed_body` to go from
     // `HttpResponse<Bytes>` to `HttpResponse<BoxBody>`
     let http_reponse = response_head.set_body(body).map_into_boxed_body();
     Ok(http_reponse)
+}
+
+pub enum NextAction {
+    StartProcessing(Transaction<'static, Postgres>),
+    ReturnSavedResponse(HttpResponse),
+}
+
+pub async fn try_processing(
+    pool: &PgPool,
+    idempotency_key: &IdempotencyKey,
+    user_id: Uuid,
+) -> Result<NextAction, anyhow::Error> {
+    let mut transaction = pool.begin().await?;
+
+    // with `repeatable read` isolation, the second request will error
+    // sqlx::query!("SET TRANSACTION ISOLATION LEVEL repeatable read")
+    //     .execute(&mut transaction)
+    //     .await?;
+
+    // The `INSERT` statement fired by the second request must wait for outcome of the SQL
+    // transaction started by the first request.
+    // If the latter commits, the former will DO NOTHING.
+    // If the latter rolls back, the former will actually perform the insertion
+    // It is worth highlighting that this strategy will **not** work if using stricter
+    // isolation levels
+    let n_inserted_rows = sqlx::query!(
+        r#"
+        INSERT INTO idempotency (
+            user_id, 
+            idempotency_key,
+            created_at
+        )
+        VALUES ($1, $2, now())
+        ON CONFLICT DO NOTHING
+        "#,
+        user_id,
+        idempotency_key.as_ref()
+    )
+    .execute(&mut transaction)
+    .await?
+    .rows_affected();
+
+    if n_inserted_rows > 0 {
+        // first request goes here
+        Ok(NextAction::StartProcessing(transaction))
+    } else {
+        // second request here
+        let saved_response = get_saved_response(pool, idempotency_key, user_id)
+            .await?
+            .ok_or_else(|| anyhow::anyhow!("We expected a saved response, we didn't find it"))?;
+        Ok(NextAction::ReturnSavedResponse(saved_response))
+    }
 }
