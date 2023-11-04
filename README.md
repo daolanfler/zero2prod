@@ -308,3 +308,17 @@ transaction began.
 This is why the transaction initiated by the second request fails to commit in our little experiment
 above. The same would have happened if we had chosen `serializable`, the strictest isolation level
 available in Postgres.
+
+### Distributed Transactions
+
+The pain we are feeling is a common issue in real-world applications - you lose transactionality when
+executing loogic that touches, at the same time, your local state and a remote state managed by
+another system.
+
+> More often then not, the other system lives within your organization - it's just a different
+> microservice, with its own isolated data store. You have traded the inner complexity of the monolith
+> for the complexity of orchestrating changes across multiple sub-system - complexity has to live
+> somewhere.
+
+**Backward Recovery**
+**Foreward Recovery**
