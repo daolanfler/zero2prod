@@ -322,3 +322,27 @@ another system.
 
 **Backward Recovery**
 **Foreward Recovery**
+
+### Email Processing
+We need to consume taks from `ussue_delivery_queue`.  
+Multiple workers would pick the same task and we would end up with a lot of duplicated emails.
+We need synchronization. Once again, we are going to leverage the database - we will use row-level
+locks.  
+
+Postgres 9.5 introduced the SKIP LOCKED clause - it allows SELECT statements to ignore all rows that 
+are currently locked by another concurrent operation.  
+FOR UPDATE, instead, can be used to lock the rows returned by a SELECT.
+
+```sql
+SELECT (newsletter_issue_id, subscriber_email)
+FROM issue_delivery_queue
+FOR UPDATE
+SKIP LOCKED
+LIMIT 1
+```
+This gives us a concurrency-safe queue.  
+Each worker is going to select an uncontested task (SKIP LOCKED and LIMIT 1); the task itself is 
+going to become unavailable to another workder (FOR UPDATE) for the duration of the over-arching SQL
+transaction.  
+When the task is complete (i.e. the email has been sent), we are going to delete the corresponding 
+row from `issue_delivery_queue` and commit our changes.  
