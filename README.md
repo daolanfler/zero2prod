@@ -30,7 +30,7 @@ _while trying to persist a subscriber token_.
 In another circumstance we might sish to handle `sqlx::Error` differently.
 
 `Option<&(dyn Error + 'static)>`  
-`dyn Error` is a trait object - a type that we know nothing about aport from the fact that it
+`dyn Error` is a trait object - a type that we know nothing about apart from the fact that it
 implements the Error trait.
 
 函数 return 的 error 会隐式的调用 `.into()`?  
@@ -43,7 +43,7 @@ https://internals.rust-lang.org/t/what-is-wrong-with-auto-into/17319/2
 - `#[from]` automatically derives an implementation of **From** for the type it has been applied to
   into the top-level error type (e.g. `impl From<StoreTokenError> for SubscribeError {/* */}`). The
   field annotated with `#[from]` is also used as error source, saving us from having to use two
-  annotations on the save field.
+  annotations on the same field.
 
 We do not want to expose the implementation details of the fallible routines that get mapped to
 `Unexpected Error` by `subscribe` - it must be **opaque**.
