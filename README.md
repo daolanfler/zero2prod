@@ -1,3 +1,68 @@
+# Zero to Production - Newsletter Service
+
+## What does this repository do?
+
+This repository contains **Zero2Prod**, a production-ready **newsletter subscription service** built in Rust. It demonstrates modern web development practices and implements a complete email newsletter system with advanced features for reliability, security, and scalability.
+
+### 🎯 Core Functionality
+
+**Newsletter Management System**
+- **User Subscriptions**: Users can subscribe to newsletters by providing their name and email address
+- **Email Confirmation**: Double opt-in system requiring email confirmation before subscription activation
+- **Newsletter Publishing**: Authenticated administrators can compose and send newsletters to confirmed subscribers
+- **Admin Dashboard**: Web-based management interface for administrators
+
+### 🏗️ Technical Architecture
+
+**Web Application Stack**
+- **Framework**: Actix-web (high-performance Rust web framework)
+- **Database**: PostgreSQL with SQLx for type-safe database interactions
+- **Email Delivery**: Integration with external email services (Postmark)
+- **Session Management**: Redis-backed session storage
+- **Background Processing**: Asynchronous email delivery queue system
+
+### 🚀 Key Features
+
+**API Endpoints**
+- `POST /subscriptions` - Subscribe to newsletter
+- `GET /subscriptions/confirm` - Confirm email subscription  
+- `POST /newsletters` - Publish newsletter (authenticated)
+- `GET /admin/dashboard` - Admin management interface
+- `GET /health_check` - Service health monitoring
+- `POST /login` & `POST /logout` - Authentication system
+
+**Production-Ready Features**
+- **Fault Tolerance**: Retry mechanisms and graceful error handling
+- **Idempotency**: Prevents duplicate newsletter sends using idempotency keys
+- **Security**: XSS/CSRF protection, secure authentication, signed cookies
+- **Observability**: Structured logging with tracing and telemetry
+- **Performance**: Connection pooling, async processing, database optimization
+- **Reliability**: ACID transactions, data consistency guarantees
+
+### 🛡️ Advanced Capabilities
+
+**Distributed Systems Concepts**
+- **Concurrency Control**: Database-level synchronization for distributed deployments
+- **Message Queues**: Background job processing for email delivery
+- **Session-Based Authentication**: Secure user session management
+- **Error Recovery**: Comprehensive error handling and recovery strategies
+
+### 📚 Educational Value
+
+This project serves as a comprehensive example of building production-ready web services in Rust, covering:
+- RESTful API design and implementation
+- Database design and migrations
+- Authentication and authorization
+- Email service integration
+- Testing strategies (unit, integration, end-to-end)
+- Deployment and operational considerations
+- Security best practices
+- Performance optimization techniques
+
+The codebase follows the principles outlined in "Zero to Production in Rust" and demonstrates real-world application development patterns.
+
+---
+
 ## 环境变量说明
 
 - `TEST_LOG` 运行测试的时候是否打印 tracing logs 默认为空
