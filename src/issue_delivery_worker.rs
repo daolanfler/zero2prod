@@ -5,7 +5,9 @@ use tracing::{field::display, Span};
 use uuid::Uuid;
 
 use crate::{
-    configuration::Settings, domain::SubscriberEmail, email_client::{EmailClient, self},
+    configuration::Settings,
+    domain::SubscriberEmail,
+    email_client::EmailClient,
     startup::get_connection_pool,
 };
 
@@ -84,7 +86,7 @@ async fn dequeue_task(
         LIMIT 1
         "#,
     )
-    .fetch_optional(&mut transaction)
+    .fetch_optional(transaction.as_mut())
     .await?;
 
     if let Some(r) = r {
@@ -108,13 +110,13 @@ async fn delete_task(
         r#"
         DELETE FROM issue_delivery_queue
         WHERE
-            newsletter_issue_id = $1 AND 
+            newsletter_issue_id = $1 AND
             subscriber_email = $2
     "#,
         issue_id,
         email
     )
-    .execute(&mut transaction)
+    .execute(transaction.as_mut())
     .await?;
     transaction.commit().await?;
     Ok(())
@@ -133,7 +135,7 @@ async fn get_issue(pool: &PgPool, issue_id: Uuid) -> Result<NewsletterIssue, any
         r#"
         SELECT title, text_content, html_content
         FROM newsletter_issues
-        WHERE 
+        WHERE
             newsletter_issue_id = $1
         "#,
         issue_id
@@ -171,10 +173,10 @@ async fn worker_loop(pool: PgPool, email_client: EmailClient) -> Result<(), anyh
 
 /**
  * To run our background worker and the API side-to-side we need to restructure our `main` function.
- * We are going to build the `Future` for each of the two long-running tasks - `Futures` are lazy in Rust, 
- * so nothing happens until they are actually awaited. 
- * We will use `tokio::select!` to get both tasks to make progress concurrently. `tokio::select!` returns as soon 
- * as one of the two tasks completes or errors out: 
+ * We are going to build the `Future` for each of the two long-running tasks - `Futures` are lazy in Rust,
+ * so nothing happens until they are actually awaited.
+ * We will use `tokio::select!` to get both tasks to make progress concurrently. `tokio::select!` returns as soon
+ * as one of the two tasks completes or errors out:
  */
 
 pub async fn run_worker_until_stopped(configuration: Settings) -> Result<(), anyhow::Error> {

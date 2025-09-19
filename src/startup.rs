@@ -4,7 +4,7 @@ use crate::{
     email_client::EmailClient,
     routes::{
         admin_dashboard, change_password, change_password_form, confirm, health_check, home,
-        log_out, login, login_form, publish_newsletter_form, publish_newsletter, subscribe,
+        log_out, login, login_form, publish_newsletter, publish_newsletter_form, subscribe,
     },
 };
 use actix_session::{storage::RedisSessionStore, SessionMiddleware};
@@ -76,7 +76,7 @@ pub async fn run(
                     .route("/newsletters", web::post().to(publish_newsletter))
                     .route("/password", web::get().to(change_password_form))
                     .route("/password", web::post().to(change_password))
-                    .route("/logout", web::post().to(log_out))
+                    .route("/logout", web::post().to(log_out)),
             )
             // Get a pointer copy and attach it to the application state
             .app_data(db_pool.clone())
@@ -92,7 +92,8 @@ pub async fn run(
 
 pub fn get_connection_pool(configuration: &DatabaseSettings) -> PgPool {
     PgPoolOptions::new()
-        .connect_timeout(std::time::Duration::from_secs(2))
+        // .connect_timeout(std::time::Duration::from_secs(2))
+        .acquire_timeout(std::time::Duration::from_secs(2))
         .connect_lazy_with(configuration.with_db())
 }
 

@@ -190,7 +190,7 @@ pub async fn insert_subscriber(
         Utc::now()
     )
     // First we attach the instrumentation, then we `.await` it
-    .execute(transaction)
+    .execute(transaction.as_mut())
     .await
     .map_err(|e| {
         // tracing::error!("Failed to execute query: {:?}", e);
@@ -243,7 +243,7 @@ pub async fn store_token(
         subscription_token,
         subscriber_id
     )
-    .execute(transaction)
+    .execute(transaction.as_mut())
     .await
     .map_err(|e| {
         // tracing::error!("Failed to execute query: {:?}", e);

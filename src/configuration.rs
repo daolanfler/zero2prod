@@ -92,11 +92,11 @@ pub fn get_configuration() -> Result<Settings, config::ConfigError> {
 
 impl DatabaseSettings {
     pub fn with_db(&self) -> PgConnectOptions {
-        let mut options = self.without_db().database(&self.database_name);
+        let options = self.without_db().database(&self.database_name);
         // We can take the oppotunity - now that we are using PgConnectOptions -
         // to tune sqlx's instrumentation: lower their logs from INFO to TRACE.
         // This will eliminate the noise we noticed in the previous chapter
-        options.log_statements(tracing::log::LevelFilter::Trace);
+        options.clone().log_statements(tracing::log::LevelFilter::Trace);
         options
     }
 

@@ -17,11 +17,11 @@ struct HeaderPairRecord {
 /// type itself. It does not know the name of the type for arrays containing `header_pair` elements.
 /// Postgres creates an array type implicitly when we run `CREATE TYPE` statement - it is simply
 /// the composite type name prefixed by an underscore.
-impl PgHasArrayType for HeaderPairRecord {
-    fn array_type_info() -> sqlx::postgres::PgTypeInfo {
-        sqlx::postgres::PgTypeInfo::with_name("_header_pair")
-    }
-}
+// impl PgHasArrayType for HeaderPairRecord {
+//     fn array_type_info() -> sqlx::postgres::PgTypeInfo {
+//         sqlx::postgres::PgTypeInfo::with_name("_header_pair")
+//     }
+// }
 
 pub async fn get_saved_response(
     pool: &PgPool,
@@ -99,7 +99,7 @@ pub async fn save_response(
         headers,
         body.as_ref()
     )
-    .execute(&mut transaction)
+    .execute(transaction.as_mut())
     .await?;
     // IMPORTANT 这里一定要 commit
     transaction.commit().await?;
@@ -146,7 +146,7 @@ pub async fn try_processing(
         user_id,
         idempotency_key.as_ref()
     )
-    .execute(&mut transaction)
+    .execute(transaction.as_mut())
     .await?
     .rows_affected();
 

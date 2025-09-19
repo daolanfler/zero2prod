@@ -10,7 +10,7 @@ actix-web = "4.4"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 serde = { version = "1", features = ["derive"] }
 config = "0.11"
-uuid = { version = "0.8.1", features = ["v4", "serde"] }
+uuid = { version = "1.0", features = ["v4", "serde"] }
 chrono = "0.4"
 tracing = { version = "0.1", features = ["log"] }
 tracing-subscriber = { version = "0.3", features = ["env-filter", "registry"] }
@@ -25,7 +25,7 @@ rand = { version = "0.8", features = ["std_rng"] }
 thiserror = "1"
 anyhow = "1"
 base64 = "0.13"
-argon2 = { version = "0.3", features = ["std"] }
+argon2 = { version = "0.5", features = ["std"] }
 urlencoding = "2"
 htmlescape = "0.3"
 actix-web-flash-messages = { version = "0.3", features = ["cookies"] }
@@ -39,16 +39,15 @@ default_features = false
 features = ["json", "rustls-tls", "cookies"]
 
 [dependencies.sqlx]
-version = "0.5.7"
+version = "0.8"
 default-features = false
 features = [
-    "runtime-actix-rustls",
+    "runtime-tokio-rustls",
     "macros",
     "postgres",
     "uuid",
     "chrono",
-    "migrate",
-    "offline",
+    "migrate"
 ]
 
 [dev-dependencies]
