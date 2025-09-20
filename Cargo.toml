@@ -1,7 +1,7 @@
 [package]
 name = "zero2prod"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -29,13 +29,13 @@ argon2 = { version = "0.5", features = ["std"] }
 urlencoding = "2"
 htmlescape = "0.3"
 actix-web-flash-messages = { version = "0.3", features = ["cookies"] }
-actix-session = { version = "0.7", features = ["redis-rs-tls-session"] }
+actix-session = { version = "0.11", features = ["redis-session-rustls"] }
 serde_json = "1"
 actix-web-lab = "0.20"
 
 [dependencies.reqwest]
-version = "0.11"
-default_features = false
+version = "0.12"
+default-features = false
 features = ["json", "rustls-tls", "cookies"]
 
 [dependencies.sqlx]

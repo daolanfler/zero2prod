@@ -1,7 +1,6 @@
 use super::IdempotencyKey;
 
-use actix_web::{body::to_bytes, HttpResponse};
-use reqwest::StatusCode;
+use actix_web::{body::to_bytes, http::StatusCode, HttpResponse};
 use sqlx::{PgPool, Postgres, Transaction};
 use uuid::Uuid;
 
