@@ -2,7 +2,6 @@ use super::IdempotencyKey;
 
 use actix_web::{body::to_bytes, HttpResponse};
 use reqwest::StatusCode;
-use sqlx::postgres::PgHasArrayType;
 use sqlx::{PgPool, Postgres, Transaction};
 use uuid::Uuid;
 
@@ -84,13 +83,13 @@ pub async fn save_response(
 
     sqlx::query_unchecked!(
         r#"
-        UPDATE idempotency 
-        SET 
+        UPDATE idempotency
+        SET
             response_status_code = $3,
             response_headers = $4,
             response_body = $5
-        WHERE 
-            user_id = $1 AND 
+        WHERE
+            user_id = $1 AND
             idempotency_key = $2
     "#,
         user_id,
@@ -136,7 +135,7 @@ pub async fn try_processing(
     let n_inserted_rows = sqlx::query!(
         r#"
         INSERT INTO idempotency (
-            user_id, 
+            user_id,
             idempotency_key,
             created_at
         )

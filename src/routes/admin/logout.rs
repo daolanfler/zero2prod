@@ -1,4 +1,4 @@
-use actix_web::{HttpResponse, post};
+use actix_web::HttpResponse;
 use actix_web_flash_messages::FlashMessage;
 
 use crate::{

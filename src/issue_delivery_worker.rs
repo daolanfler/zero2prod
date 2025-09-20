@@ -5,9 +5,7 @@ use tracing::{field::display, Span};
 use uuid::Uuid;
 
 use crate::{
-    configuration::Settings,
-    domain::SubscriberEmail,
-    email_client::EmailClient,
+    configuration::Settings, domain::SubscriberEmail, email_client::EmailClient,
     startup::get_connection_pool,
 };
 

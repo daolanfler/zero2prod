@@ -96,7 +96,9 @@ impl DatabaseSettings {
         // We can take the oppotunity - now that we are using PgConnectOptions -
         // to tune sqlx's instrumentation: lower their logs from INFO to TRACE.
         // This will eliminate the noise we noticed in the previous chapter
-        options.clone().log_statements(tracing::log::LevelFilter::Trace);
+        options
+            .clone()
+            .log_statements(tracing::log::LevelFilter::Trace);
         options
     }
 

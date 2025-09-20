@@ -1,7 +1,7 @@
 mod admin;
-mod health_check; // warning becuase it exports function with the smae name as module name
-mod home;
-mod login;
+pub mod health_check;
+pub mod home;
+pub mod login;
 mod subscriptions;
 mod subscriptions_confirm;
 

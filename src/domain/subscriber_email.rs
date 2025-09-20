@@ -27,7 +27,6 @@ impl std::fmt::Display for SubscriberEmail {
 
 #[cfg(test)]
 mod tests {
-    use claim::assert_err;
     // We are importing the `SafeEmail` faker!
     // We also need the `Fake` trait to get access to the
     // `.fake` method of `SafeEmail`
